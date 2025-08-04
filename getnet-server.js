@@ -12,11 +12,11 @@ const TRANKEY = 'SnZP3D63n3I9dH9O';
 const ENDPOINT = 'https://checkout.test.getnet.cl';
 
 function generateTranKey(seed) {
-  const sha1 = crypto.createHash('sha1');
-  sha1.update(seed + TRANKEY);
-  return sha1.digest('base64');
+  const hash = crypto.createHash('sha1');
+  const buffer = Buffer.from(seed + TRANKEY, 'utf8');
+  hash.update(buffer);
+  return hash.digest('base64');
 }
-
 app.post('/getnet/crear-sesion', async (req, res) => {
   const seed = new Date().toISOString();
   const tranKey = generateTranKey(seed);
