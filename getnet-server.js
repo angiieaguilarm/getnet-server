@@ -43,8 +43,9 @@ app.post('/getnet/crear-sesion', async (req, res) => {
 
     return res.json({ redirect_url: response.data.redirect });
   } catch (error) {
-    console.error('Error en Getnet:', error.response?.data || error.message);
-    return res.status(500).json({ error: 'Error al crear sesión con Getnet' });
+  const detalle = error.response?.data || error.message;
+  console.error('Error en Getnet:', detalle);
+  return res.status(500).json({ error: 'Error al crear sesión con Getnet', detalle });
   }
 });
 
