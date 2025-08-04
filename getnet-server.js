@@ -21,4 +21,5 @@ function generateTranKey(seed) {
 app.post('/getnet/crear-sesion', async (req, res) => {
   // seed sin milisegundos para evitar rechazo de Getnet
   const seed = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-  const tranKe
+  const tranKey = generateTranKey(seed);
+
