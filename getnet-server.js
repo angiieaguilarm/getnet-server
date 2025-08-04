@@ -1,57 +1,41 @@
-const express = require('express');
-const crypto = require('crypto');
 const axios = require('axios');
-const cors = require('cors');
+const crypto = require('crypto');
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+const login = "7ffbb7bf1f7361b1200b2e8d74e1d76f";
+const secretKey = "SnZP3D63n3I9dH9O";
 
-const LOGIN = '7ffbb7bf1f7361b1200b2e8d74e1d76f';
-const TRANKEY = 'SnZP3D63n3I9dH9O';
-const ENDPOINT = 'https://checkout.test.getnet.cl';
-
-function generateTranKey(seed) {
-  const buffer = Buffer.from(seed + TRANKEY, 'utf8');
-  const sha1 = crypto.createHash('sha1').update(buffer).digest();
-  return sha1.toString('base64');
+function generateTranKey(secretKey, seed) {
+  const sha1 = crypto.createHash('sha1');
+  sha1.update(seed + secretKey);
+  return sha1.digest('base64');
 }
 
+async function createGetnetSession() {
+  const seed = new Date().toISOString();
+  const tranKey = generateTranKey(secretKey, seed);
 
-app.post('/getnet/crear-sesion', async (req, res) => {
-  const seed = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-  const tranKey = generateTranKey(seed);
-
-  const body = {
+  const authPayload = {
     auth: {
-      login: LOGIN,
+      login,
+      seed,
       tranKey,
-      seed
-    },
-    payment: {
-      reference: `orden-${Date.now()}`,
-      amount: {
-        currency: 'CLP',
-        total: 9990
-      }
-    },
-    expiration: new Date(Date.now() + 15 * 60000).toISOString(),
-    returnUrl: 'https://loudaccesorios.com/pages/confirmacion-pago',
-    ipAddress: '127.0.0.1',
-    userAgent: 'Shopify Integration'
+    }
   };
 
-  console.log('Request body a Getnet:', JSON.stringify(body, null, 2));
-
   try {
-    const response = await axios.post(`${ENDPOINT}/api/session`, body);
-    return res.json({ redirect_url: response.data.redirect });
+    const response = await axios.post('https://checkout.test.getnet.cl/api/session', authPayload, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log("Respuesta Getnet:", response.data);
   } catch (error) {
-    const detalle = error.response?.data || error.message;
-    console.error('Error en Getnet:', detalle);
-    return res.status(500).json({ error: 'Error al crear sesión con Getnet', detalle });
+    if (error.response) {
+      console.error("Error en respuesta:", error.response.data);
+    } else {
+      console.error("Error general:", error.message);
+    }
   }
-});
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+createGetnetSession();
