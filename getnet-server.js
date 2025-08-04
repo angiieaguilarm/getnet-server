@@ -12,11 +12,12 @@ const TRANKEY = 'SnZP3D63n3I9dH9O';
 const ENDPOINT = 'https://checkout.test.getnet.cl';
 
 function generateTranKey(seed) {
-  const hash = crypto.createHash('sha1');
-  const buffer = Buffer.from(seed + TRANKEY, 'utf8');
-  hash.update(buffer);
-  return hash.digest('base64');
+  const concatenated = seed + TRANKEY;
+  const sha1 = crypto.createHash('sha1');
+  sha1.update(concatenated, 'utf8');
+  return sha1.digest('base64');
 }
+
 app.post('/getnet/crear-sesion', async (req, res) => {
   const seed = new Date().toISOString();
   const tranKey = generateTranKey(seed);
@@ -43,9 +44,9 @@ app.post('/getnet/crear-sesion', async (req, res) => {
 
     return res.json({ redirect_url: response.data.redirect });
   } catch (error) {
-  const detalle = error.response?.data || error.message;
-  console.error('Error en Getnet:', detalle);
-  return res.status(500).json({ error: 'Error al crear sesión con Getnet', detalle });
+    const detalle = error.response?.data || error.message;
+    console.error('Error en Getnet:', detalle);
+    return res.status(500).json({ error: 'Error al crear sesión con Getnet', detalle });
   }
 });
 
