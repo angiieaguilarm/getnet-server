@@ -22,26 +22,29 @@ app.post('/getnet/crear-sesion', async (req, res) => {
   const seed = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
   const tranKey = generateTranKey(seed);
 
-  try {
-    const response = await axios.post(`${ENDPOINT}/api/session`, {
-      auth: {
-        login: LOGIN,
-        tranKey,
-        seed
-      },
-      payment: {
-        reference: `orden-${Date.now()}`,
-        amount: {
-          currency: 'CLP',
-          total: 9990
-        }
-      },
-      expiration: new Date(Date.now() + 15 * 60000).toISOString(),
-      returnUrl: 'https://loudaccesorios.com/pages/confirmacion-pago',
-      ipAddress: '127.0.0.1',
-      userAgent: 'Shopify Integration'
-    });
+  const body = {
+    auth: {
+      login: LOGIN,
+      tranKey,
+      seed
+    },
+    payment: {
+      reference: `orden-${Date.now()}`,
+      amount: {
+        currency: 'CLP',
+        total: 9990
+      }
+    },
+    expiration: new Date(Date.now() + 15 * 60000).toISOString(),
+    returnUrl: 'https://loudaccesorios.com/pages/confirmacion-pago',
+    ipAddress: '127.0.0.1',
+    userAgent: 'Shopify Integration'
+  };
 
+  console.log('Request body a Getnet:', JSON.stringify(body, null, 2));
+
+  try {
+    const response = await axios.post(`${ENDPOINT}/api/session`, body);
     return res.json({ redirect_url: response.data.redirect });
   } catch (error) {
     const detalle = error.response?.data || error.message;
